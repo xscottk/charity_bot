@@ -1,2 +1,5 @@
 private_settings.py
 *.pyc
+__pycache__
+oauth.ini
+processed_mentions
