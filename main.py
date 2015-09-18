@@ -18,6 +18,12 @@ processed_mentions = mentions_file.read().splitlines()
 o.refresh()
 mentions = r.get_mentions()
 
+def get_valid_currencies():
+  # Get the list of valid currencies from justgiving
+
+  # TODO: For now we just return a list manually...may be nice to periodically check for new currencies in the future.
+  return [('GBP','£') , ('USD','$') , ('HKD','HK$') , ('SGD','SG$') , ('CAD','CA$') , ('AED','د.إ') , ('AUD','AU$') , ('ZAR','R') , ('EUR','€')]
+
 def parse_message(mention):
   # Parse and validate donation message.
 
@@ -38,9 +44,11 @@ def parse_message(mention):
   donation_amount = message[1]
   charity_id      = message[2]
 
-  return message
+  donation = [donation_amount, charity_id]
 
-def get_donation():
+  return donation
+
+def get_donation(donation_amount, charity):
   # Get the donation link from justgiving.
   pass
 
@@ -66,6 +74,9 @@ def init():
       send_donation_message()
       confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
       post_confirmation()
+
+      # TODO: Switch to sqlite at some point
+      # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
       # mentions_file.write(mention.id + '\n')
 
   mentions_file.close()
