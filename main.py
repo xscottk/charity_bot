@@ -1,5 +1,7 @@
-import praw
 import OAuth2Util
+import praw
+import requests
+
 from private_settings import *
 from settings import *
 
@@ -22,7 +24,15 @@ def get_valid_currencies():
   # Get the list of valid currencies from justgiving
 
   # TODO: For now we just return a list manually...may be nice to periodically check for new currencies in the future.
-  return [('GBP','£') , ('USD','$') , ('HKD','HK$') , ('SGD','SG$') , ('CAD','CA$') , ('AED','د.إ') , ('AUD','AU$') , ('ZAR','R') , ('EUR','€')]
+  # return [('GBP','£') , ('USD','$') , ('HKD','HK$') , ('SGD','SG$') , ('CAD','CA$') , ('AED','د.إ') , ('AUD','AU$') , ('ZAR','R') , ('EUR','€')]
+  return ['£','$','HK$','SG$','CA$','د.إ','AU$','R','€']
+
+def parse_donation(donation):
+  valid_currencies = get_valid_currencies()
+  
+
+def validate_charity_id(charity_id):
+  pass
 
 def parse_message(mention):
   # Parse and validate donation message.
@@ -41,8 +51,11 @@ def parse_message(mention):
   if len(message) != 3:
     return None
 
-  donation_amount = message[1]
-  charity_id      = message[2]
+  currency, donation_amount  = parse_donation(message[1])
+  charity_id                 = validate_charity_id(message[2])
+
+
+
 
   donation = [donation_amount, charity_id]
 
