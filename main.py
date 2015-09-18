@@ -18,8 +18,56 @@ processed_mentions = mentions_file.read().splitlines()
 o.refresh()
 mentions = r.get_mentions()
 
-for mention in mentions:
-  if mention.id not in processed_mentions:
-    print(mention)
-  else:
-    mentions_file.write(mention.id + '\n')
+def parse_message(mention):
+  # Parse and validate donation message.
+
+  # Call format: \u\Charity-Bot $X Y ($5 123)
+  # Currency can be $ or pound or OTHERS?
+  # Default Charity: \u\Charity-Bot $X 2357 (Charity ID for Cancer Research UK)
+
+  # Rules:
+  # Currency sign must be valid
+  # Donation amount must be >0
+  # Charity must be a valid charity number
+  message = mention.body.split()
+  
+  # Make sure we get the right number of arguments (3): /u/Charity-Bot Amount Charity
+  if len(message) != 3:
+    return None
+
+  donation_amount = message[1]
+  charity_id      = message[2]
+
+  return message
+
+def get_donation():
+  # Get the donation link from justgiving.
+  pass
+
+def send_donation_message():
+  # Send the donation link to the comment author.
+  pass
+
+def confirm_donation():
+  # Confirm that the donation was made through the link.
+  pass
+
+def post_confirmation():
+  # Post a confirmation comment back to the original message id.
+  pass
+
+def init():
+  for mention in mentions:
+    if mention.id not in processed_mentions:
+      # print(mention)
+      donation_details = parse_message(mention)
+      print(donation_details)
+      get_donation()
+      send_donation_message()
+      confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
+      post_confirmation()
+      # mentions_file.write(mention.id + '\n')
+
+  mentions_file.close()
+
+init()
