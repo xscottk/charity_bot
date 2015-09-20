@@ -20,14 +20,18 @@ processed_mentions = mentions_file.read().splitlines()
 o.refresh()
 mentions = r.get_mentions()
 
-def request_wrapper(resource, method, additional_headers, **kwargs):
+def request_wrapper(resource, method, additional_headers=None, **kwargs):
   # Return either the requested resource (in JSON), POST confirmation, or None if something failed
   # QUESTION: Should I do subclassing instead here?
   # TODO: Figure out how to merge default headers and optional additional headers passed to request_wrapper
 
   default_headers = {'accept':'application/json'}
-  all_headers = default_headers.copy()
-  all_headers.update(additional_headers)
+
+  if additional_headers == None:
+    all_headers = default_headers
+  else:
+    all_headers = default_headers.copy()
+    all_headers.update(additional_headers)
 
   if method == 'GET':
     request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
@@ -54,23 +58,23 @@ def validate_charity_id(mention):
   message = mention.body.split()
 
   donate  = message[1] == "donate"
-  # Umm, if charity_id was given then use it, otherwise use the default charity. Waiting for PEP 0505...
-
-  try:
-    charity_id = message[2]
-  except:
-    charity_id = DEFAULT_CHARITY_ID
 
   if not donate:
     return None
 
-  # if len(message) not in (2,3):
-  #   return None
+  # TODO: Try to shorten once Python 3.6 w/ PEP 0505 comes out
+  try:
+    charity_id = int(message[2])
+  except:
+    charity_id = DEFAULT_CHARITY_ID
 
-  return True
+  r = request_wrapper('v1/charity/' + str(charity_id),'GET')
 
-  # Make sure we get the right number of arguments (2 or 3) 
-  # if len(message) == 3:
+  if r.status_code != 200:
+    return DEFAULT_CHARITY_ID
+
+
+  return charity_id
     
 
 def get_donation(donation_amount, charity):
