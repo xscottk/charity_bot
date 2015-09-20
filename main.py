@@ -7,7 +7,6 @@ import praw
 import requests
 from requests.auth import HTTPBasicAuth
 
-from private_settings import *
 from settings import *
 
 r = praw.Reddit(REDDIT_USER_AGENT)
@@ -21,23 +20,27 @@ processed_mentions = mentions_file.read().splitlines()
 o.refresh()
 mentions = r.get_mentions()
 
-def request_wrapper(resource, method, headers, **kwargs):
+def request_wrapper(resource, method, additional_headers, **kwargs):
   # Return either the requested resource (in JSON), POST confirmation, or None if something failed
   # QUESTION: Should I do subclassing instead here?
   # TODO: Figure out how to merge default headers and optional additional headers passed to request_wrapper
 
+  default_headers = {'accept':'application/json'}
+  all_headers = default_headers.copy()
+  all_headers.update(additional_headers)
+
   if method == 'GET':
-    request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers={'accept':'application/json'}, **kwargs)
+    request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
 
   elif method == 'POST':
-    request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers={'accept':'application/json'}, **kwargs)
+    request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
 
   else:
     return None
 
   return request
 
-def validate_charityId(mention):
+def validate_charity_id(mention):
   # Parse and validate donation message.
   # RETURN: Validated charity number OR None if invalid charity number.
 
@@ -50,13 +53,21 @@ def validate_charityId(mention):
 
   message = mention.body.split()
 
-  donate  = message[0] == True
-  charity_id = message[1]
+  donate  = message[1] == "donate"
+  # Umm, if charity_id was given then use it, otherwise use the default charity. Waiting for PEP 0505...
+
+  try:
+    charity_id = message[2]
+  except:
+    charity_id = DEFAULT_CHARITY_ID
 
   if not donate:
     return None
 
+  # if len(message) not in (2,3):
+  #   return None
 
+  return True
 
   # Make sure we get the right number of arguments (2 or 3) 
   # if len(message) == 3:
@@ -82,8 +93,8 @@ def init():
   for mention in mentions:
     if mention.id not in processed_mentions:
       # print(mention)
-      donation_details = validate_charityId(mention)
-      print(donation_details)
+      donation_details = validate_charity_id(mention)
+      print(mention.body,"=", donation_details)
       # get_donation()
       # send_donation_message()
       # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message

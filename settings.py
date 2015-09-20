@@ -12,3 +12,6 @@ JUSTGIVING_BASE_URL = 'https://api-sandbox.justgiving.com' # http://v3-sandbox.j
 
 # QUESTION: Is there a better way to assemble a URL?
 JUSTGIVING_API_URL = JUSTGIVING_BASE_URL + '/' + JUSTGIVING_APP_ID + '/'
+
+# The charity ID to use if a user does not specify a charity
+DEFAULT_CHARITY_ID = 2357
