@@ -2,7 +2,6 @@
 
 # Example: r = requests.get('https://api-sandbox.justgiving.com/JUSTGIVING_APP_ID/v1/fundraising/pages', auth=HTTPBasicAuth('JUSTGIVING_USER', 'JUSTGIVING_PASS'), headers={'accept':'application/json'})
 
-import itertools
 import OAuth2Util
 import praw
 import requests
@@ -23,7 +22,7 @@ all_mentions = r.get_mentions()
 
 def justgiving_request_wrapper(resource, method, additional_headers=None, **kwargs):
   # Return either the requested resource (in JSON), POST confirmation, or None if something failed
-  # QUESTION: Should I do subclassing instead here?
+  # QUESTION: Should I do subclassing instead here? Or overriding or something?
   # TODO: Figure out how to merge default headers and optional additional headers passed to justgiving_request_wrapper
 
   default_headers = {'accept':'application/json'}
@@ -40,9 +39,6 @@ def justgiving_request_wrapper(resource, method, additional_headers=None, **kwar
 
   elif method == 'POST':
     jg_request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
-
-  # elif method == 'PUT':
-  #   jg_request = requests.put(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)    
 
   else:
     return None
@@ -99,7 +95,7 @@ def get_donation_url(charity_id):
   if charity_id == None:
     return None
 
-  donation_url = JUSTGIVING_BASE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id)
+  donation_url = JUSTGIVING_BASE_WEBSITE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id)
 
   return donation_url
 
@@ -126,26 +122,27 @@ def post_confirmation():
   pass
 
 def init():
-  new_mentions = filter(lambda x: x.new, all_mentions)
+
+  # REMINDER: In production uncomment below line and delete other new_mentions
+  # new_mentions = filter(lambda x: x.new, all_mentions)
+  new_mentions = all_mentions
 
   for mention in new_mentions:
     if mention.id not in processed_mentions:
-      # print(mention)
-      # import pdb; pdb.set_trace()
-      # from IPython.core.debugger import Tracer; Tracer()()
+
       charity_id                = validate_charity_id(mention)
       donator, parent_commenter = get_attribution_info(mention)
       donation_url              = get_donation_url(charity_id)
       donation_message_sent     = send_donation_message(donation_url, donator, parent_commenter)
       print(mention.body,"=", charity_id, "Donation message sent:", donation_message_sent)
 
-      # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
-      # post_confirmation()
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
       # TODO: Switch to sqlite at some point
       mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
-
+      
+      # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
+      # post_confirmation()
 
   mentions_file.close()
 
