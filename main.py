@@ -111,7 +111,7 @@ def send_donation_message(donation_url, donator, parent_commenter):
   message = "Here's your donation link. You're totally awesome! \n" + donation_url
   sent_message = r.send_message(recipient=donator, subject=subject, message=message)
 
-  if sent_message.status_code == 200:
+  if not sent_message.get("errors"):
     return True
   else:
     return False
