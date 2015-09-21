@@ -20,10 +20,10 @@ processed_mentions = mentions_file.read().splitlines()
 o.refresh()
 mentions = r.get_mentions()
 
-def request_wrapper(resource, method, additional_headers=None, **kwargs):
+def justgiving_request_wrapper(resource, method, additional_headers=None, **kwargs):
   # Return either the requested resource (in JSON), POST confirmation, or None if something failed
   # QUESTION: Should I do subclassing instead here?
-  # TODO: Figure out how to merge default headers and optional additional headers passed to request_wrapper
+  # TODO: Figure out how to merge default headers and optional additional headers passed to justgiving_request_wrapper
 
   default_headers = {'accept':'application/json'}
 
@@ -34,15 +34,15 @@ def request_wrapper(resource, method, additional_headers=None, **kwargs):
     all_headers.update(additional_headers)
 
   if method == 'GET':
-    request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
+    jg_request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
 
   elif method == 'POST':
-    request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
+    jg_request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
 
   else:
     return None
 
-  return request
+  return jg_request
 
 def validate_charity_id(mention):
   # Parse and validate donation message.
@@ -68,16 +68,25 @@ def validate_charity_id(mention):
   except:
     charity_id = DEFAULT_CHARITY_ID
 
-  r = request_wrapper('v1/charity/' + str(charity_id),'GET')
+  jg = justgiving_request_wrapper('v1/charity/' + str(charity_id),'GET')
 
-  if r.status_code != 200:
+  if jg.status_code != 200:
     return DEFAULT_CHARITY_ID
 
-
   return charity_id
-    
 
-def get_donation(donation_amount, charity):
+def get_attribution_info(mention):
+  donator = mention.author.name
+
+  if not mention.is_root:
+    parent_commenter = r.get_info(thing_id=mention.parent_id).author.name
+  else:    
+    parent_commenter = None
+
+  print(donator,"/", parent_commenter)
+  return [donator, parent_commenter]
+
+def get_donation_link(charity_id, donator, parent_commenter):
   # Get the donation link from justgiving.
   pass
 
@@ -97,9 +106,12 @@ def init():
   for mention in mentions:
     if mention.id not in processed_mentions:
       # print(mention)
-      donation_details = validate_charity_id(mention)
-      print(mention.body,"=", donation_details)
-      # get_donation()
+      # import pdb; pdb.set_trace()
+      # from IPython.core.debugger import Tracer; Tracer()()
+      charity_id = validate_charity_id(mention)
+      print(mention.body,"=", charity_id)
+      donator, parent_commenter = get_attribution_info(mention)
+      # get_donation_link(charity_id, donator, parent_commenter)
       # send_donation_message()
       # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
       # post_confirmation()
