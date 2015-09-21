@@ -2,6 +2,7 @@
 
 # Example: r = requests.get('https://api-sandbox.justgiving.com/JUSTGIVING_APP_ID/v1/fundraising/pages', auth=HTTPBasicAuth('JUSTGIVING_USER', 'JUSTGIVING_PASS'), headers={'accept':'application/json'})
 
+import itertools
 import OAuth2Util
 import praw
 import requests
@@ -18,7 +19,7 @@ mentions_file.seek(0)
 processed_mentions = mentions_file.read().splitlines()
 
 o.refresh()
-mentions = r.get_mentions()
+all_mentions = r.get_mentions()
 
 def justgiving_request_wrapper(resource, method, additional_headers=None, **kwargs):
   # Return either the requested resource (in JSON), POST confirmation, or None if something failed
@@ -108,7 +109,7 @@ def send_donation_message(donation_url, donator, parent_commenter):
     return False
 
   subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
-  message = "Here's your donation link. You're totally awesome! \n" + donation_url
+  message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
   sent_message = r.send_message(recipient=donator, subject=subject, message=message)
 
   if not sent_message.get("errors"):
@@ -125,7 +126,9 @@ def post_confirmation():
   pass
 
 def init():
-  for mention in mentions:
+  new_mentions = filter(lambda x: x.new, all_mentions)
+
+  for mention in new_mentions:
     if mention.id not in processed_mentions:
       # print(mention)
       # import pdb; pdb.set_trace()
@@ -135,12 +138,14 @@ def init():
       donation_url              = get_donation_url(charity_id)
       donation_message_sent     = send_donation_message(donation_url, donator, parent_commenter)
       print(mention.body,"=", charity_id, "Donation message sent:", donation_message_sent)
+
       # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
       # post_confirmation()
-
-      # TODO: Switch to sqlite at some point
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
-      # mentions_file.write(mention.id + '\n')
+      mention.mark_as_read() # Remotely prevents responding to the same message twice.
+      # TODO: Switch to sqlite at some point
+      mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
+
 
   mentions_file.close()
 
