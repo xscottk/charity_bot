@@ -33,11 +33,15 @@ def justgiving_request_wrapper(resource, method, additional_headers=None, **kwar
     all_headers = default_headers.copy()
     all_headers.update(additional_headers)
 
+# TODO: I don't like this, but I don't know how else to do it...
   if method == 'GET':
     jg_request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
 
   elif method == 'POST':
     jg_request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
+
+  # elif method == 'PUT':
+  #   jg_request = requests.put(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)    
 
   else:
     return None
@@ -65,7 +69,7 @@ def validate_charity_id(mention):
   # TODO: Try to shorten once Python 3.6 w/ PEP 0505 comes out
   try:
     charity_id = int(message[2])
-  except:
+  except ValueError:
     charity_id = DEFAULT_CHARITY_ID
 
   jg = justgiving_request_wrapper('v1/charity/' + str(charity_id),'GET')
@@ -78,21 +82,39 @@ def validate_charity_id(mention):
 def get_attribution_info(mention):
   donator = mention.author.name
 
-  if not mention.is_root:
-    parent_commenter = r.get_info(thing_id=mention.parent_id).author.name
+  # If root comment then assume donation is in the name of the submitter, otherwise assume donation is for the parent_commenter which the donator replied to.
+  if mention.is_root:
+    parent_commenter = mention.submission.author.name
   else:    
-    parent_commenter = None
+    parent_commenter = r.get_info(thing_id=mention.parent_id).author.name
 
   print(donator,"/", parent_commenter)
   return [donator, parent_commenter]
 
-def get_donation_link(charity_id, donator, parent_commenter):
+def get_donation_url(charity_id):
   # Get the donation link from justgiving.
-  pass
+  # Example URL: https://v3-sandbox.justgiving.com/4w350m3/donation/direct/charity/2357/?exitUrl=http%3A%2F%2Fwww.dogstrust.org.uk%2F#MessageAndAmount
 
-def send_donation_message():
-  # Send the donation link to the comment author.
-  pass
+  if charity_id == None:
+    return None
+
+  donation_url = JUSTGIVING_BASE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id)
+
+  return donation_url
+
+def send_donation_message(donation_url, donator, parent_commenter):
+  # Send the donation link to the donator. Return True if donation message sent, otherwise return False.
+  if donation_url == None:
+    return False
+
+  subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
+  message = "Here's your donation link. You're totally awesome! \n" + donation_url
+  sent_message = r.send_message(recipient=donator, subject=subject, message=message)
+
+  if sent_message.status_code == 200:
+    return True
+  else:
+    return False
 
 def confirm_donation():
   # Confirm that the donation was made through the link.
@@ -108,11 +130,11 @@ def init():
       # print(mention)
       # import pdb; pdb.set_trace()
       # from IPython.core.debugger import Tracer; Tracer()()
-      charity_id = validate_charity_id(mention)
-      print(mention.body,"=", charity_id)
+      charity_id                = validate_charity_id(mention)
       donator, parent_commenter = get_attribution_info(mention)
-      # get_donation_link(charity_id, donator, parent_commenter)
-      # send_donation_message()
+      donation_url              = get_donation_url(charity_id)
+      donation_message_sent     = send_donation_message(donation_url, donator, parent_commenter)
+      print(mention.body,"=", charity_id, "Donation message sent:", donation_message_sent)
       # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
       # post_confirmation()
 
