@@ -17,3 +17,6 @@ JUSTGIVING_API_URL = JUSTGIVING_BASE_API_URL + '/' + JUSTGIVING_APP_ID + '/'
 
 # The charity ID to use if a user does not specify a charity
 DEFAULT_CHARITY_ID = 2357
+
+HTTP_HOSTNAME      = 'localhost'
+HTTP_PORT          = '8080'

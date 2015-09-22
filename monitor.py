@@ -4,9 +4,10 @@
 
 import OAuth2Util
 import praw
-import requests
-from requests.auth import HTTPBasicAuth
+import urllib
+import uuid
 
+from utils import *
 from settings import *
 
 r = praw.Reddit(REDDIT_USER_AGENT)
@@ -19,31 +20,6 @@ processed_mentions = mentions_file.read().splitlines()
 
 o.refresh()
 all_mentions = r.get_mentions()
-
-def justgiving_request_wrapper(resource, method, additional_headers=None, **kwargs):
-  # Return either the requested resource (in JSON), POST confirmation, or None if something failed
-  # QUESTION: Should I do subclassing instead here? Or overriding or something?
-  # TODO: Figure out how to merge default headers and optional additional headers passed to justgiving_request_wrapper
-
-  default_headers = {'accept':'application/json'}
-
-  if additional_headers == None:
-    all_headers = default_headers
-  else:
-    all_headers = default_headers.copy()
-    all_headers.update(additional_headers)
-
-# TODO: I don't like this, but I don't know how else to do it...
-  if method == 'GET':
-    jg_request = requests.get(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
-
-  elif method == 'POST':
-    jg_request = requests.post(JUSTGIVING_API_URL + resource, auth=HTTPBasicAuth(JUSTGIVING_USER, JUSTGIVING_PASS), headers=all_headers, **kwargs)
-
-  else:
-    return None
-
-  return jg_request
 
 def validate_charity_id(mention):
   # Parse and validate donation message.
@@ -88,14 +64,18 @@ def get_attribution_info(mention):
   print(donator,"/", parent_commenter)
   return [donator, parent_commenter]
 
-def get_donation_url(charity_id):
-  # Get the donation link from justgiving.
+def get_donation_url(charity_id, user_id):
+  # Get the donation link from justgiving. And add the GET variables we need to track the donation.
   # Example URL: https://v3-sandbox.justgiving.com/4w350m3/donation/direct/charity/2357/?exitUrl=http%3A%2F%2Fwww.dogstrust.org.uk%2F#MessageAndAmount
 
   if charity_id == None:
     return None
 
-  donation_url = JUSTGIVING_BASE_WEBSITE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id)
+  # Pretty sure this is a sin...
+  exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + HTTP_PORT + '/?donation_id=JUSTGIVING-DONATION-ID&uuid=' + user_id
+  exit_url_info = urllib.parse.quote(exit_url_info)
+
+  donation_url = JUSTGIVING_BASE_WEBSITE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id) + '/?exitUrl=' + exit_url_info
 
   return donation_url
 
@@ -113,9 +93,15 @@ def send_donation_message(donation_url, donator, parent_commenter):
   else:
     return False
 
-def confirm_donation():
-  # Confirm that the donation was made through the link.
-  pass
+def confirm_accepted_donation(donation_id):
+  # Confirm that the donation was accepted by JustGiving.
+  if donation_id:
+    response         = justgiving_request_wrapper('v1/donation/' + donation_id, 'GET')
+    decoded_response = json.loads(response)
+    status           = decoded_response.get('status')
+
+    if status == "Accepted":
+      return True
 
 def post_confirmation():
   # Post a confirmation comment back to the original message id.
@@ -132,7 +118,8 @@ def init():
 
       charity_id                = validate_charity_id(mention)
       donator, parent_commenter = get_attribution_info(mention)
-      donation_url              = get_donation_url(charity_id)
+      user_id                   = str(uuid.uuid1())
+      donation_url              = get_donation_url(charity_id, user_id)
       donation_message_sent     = send_donation_message(donation_url, donator, parent_commenter)
       print(mention.body,"=", charity_id, "Donation message sent:", donation_message_sent)
 
