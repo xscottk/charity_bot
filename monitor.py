@@ -2,6 +2,7 @@
 
 # Example: r = requests.get('https://api-sandbox.justgiving.com/JUSTGIVING_APP_ID/v1/fundraising/pages', auth=HTTPBasicAuth('JUSTGIVING_USER', 'JUSTGIVING_PASS'), headers={'accept':'application/json'})
 
+import json
 import OAuth2Util
 import praw
 import urllib
@@ -72,7 +73,7 @@ def get_donation_url(charity_id, user_id):
     return None
 
   # Pretty sure this is a sin...
-  exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + HTTP_PORT + '/?donation_id=JUSTGIVING-DONATION-ID&uuid=' + user_id
+  exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + HTTP_PORT + '/?donation_id=JUSTGIVING-DONATION-ID&user_id=' + user_id
   exit_url_info = urllib.parse.quote(exit_url_info)
 
   donation_url = JUSTGIVING_BASE_WEBSITE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id) + '/?exitUrl=' + exit_url_info

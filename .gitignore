@@ -3,3 +3,4 @@ private_settings.py
 __pycache__
 oauth.ini
 processed_mentions
+*.db

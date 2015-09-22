@@ -1,7 +1,6 @@
-import json
 import os
 import urllib
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from settings import *
 from utils import *
@@ -13,17 +12,19 @@ class SimpleHandler(BaseHTTPRequestHandler):
     self.send_header("Content-type", "text/html")
     self.end_headers()
 
-    self.wfile.write('Thank you for your donation')
+    self.wfile.write(bytes('Thank you for your donation', 'UTF-8'))
 
     try:
-      query_string = urllib.parse.parse_qs(os.environ['QUERY_STRING'])
+      query_string = urllib.parse.parse_qs(self.path[2:]) # The [2:] clips off '/?' from the self.path string
       donation_id  = query_string.get('donation_id')
-      donation_id  = str(donation_id)
-    except:  
+      donation_id  = str(donation_id[0])
+      user_id      = query_string.get('user_id')
+      user_id      = str(user_id[0])
+    except TypeError:  
       donation_id = None
+      user_id     = None
 
-    save_donation_id(donation_id)
-    confirm_accepted_donation(donation_id)
+    save_donation_id(donation_id, user_id)
     return
 
 def start_server():
@@ -32,12 +33,12 @@ def start_server():
     print('Started http server')
     server.serve_forever()
   except KeyboardInterrupt:
-    print('Shutting down server')
+    print('Shutting down http server')
     server.socket.close()
 
-def save_donation_id(donation_id):
-  if donation_id:
-    pass
+def save_donation_id(donation_id, user_id):
+  print(donation_id,"/",user_id)
+  # if donation_id and user_id:
 
 
 start_server()
