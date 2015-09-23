@@ -109,9 +109,14 @@ def send_donation_url(donation_url, donator, parent_commenter):
   if donation_url == None:
     return False
 
-  if donator and parent_commenter:
-    subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
-    message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
+  message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
+  if donator:
+    if parent_commenter:
+      subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
+    else:
+      subject = "Your donation link!"
+      message += "\n\n Unfortunately the person who inspired your donation has deleted their post. I will be unable to notify them of your donation."
+    
     sent_message = r.send_message(recipient=donator, subject=subject, message=message)
   else:
     return False
@@ -164,8 +169,8 @@ def check_mentions():
       donation_url              = get_donation_url(charity_id, user_id)
       donation_url_sent         = send_donation_url(donation_url, donator, parent_commenter)
 
-      if not donation_url_sent:
-        r.send_message(recipient=donator, subject="Error with donation", message="Something went wrong with processing your donation. This can happen if either you or the parent commenter/OP you were donating for deleted their message/submission. If you're receiving this error and nothing was deleted please reply to me letting me know so I can look into it. \n\n You can still always donate here, but I may not be able to let the parent commenter/OP know:\n\n" + donation_url)
+      # if not donation_url_sent:
+      #   r.send_message(recipient=donator, subject="Error with donation", message="Something went wrong with processing your donation. This can happen if either you or the parent commenter/OP you were donating for deleted their message/submission. If you're receiving this error and nothing was deleted please reply to me letting me know so I can look into it. \n\n You can still always donate here, but I may not be able to let the parent commenter/OP know:\n\n" + donation_url)
 
       new_donation = Donation(user_id=user_id, charity_id=charity_id, 
         donator=donator, donator_post_id=donator_post_id, donator_is_root=donator_is_root, 
