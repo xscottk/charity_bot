@@ -25,7 +25,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
     self.send_header("Content-type", "text/html")
     self.end_headers()
 
-    self.wfile.write(bytes('Thank you for your donation', 'UTF-8'))
+    self.wfile.write(bytes('Thank you for your donation. You may close this window.', 'UTF-8'))
 
     try:
       query_string = urllib.parse.parse_qs(self.path[2:]) # The [2:] is needed to clip off '/?' from the self.path string

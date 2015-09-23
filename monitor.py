@@ -55,7 +55,7 @@ def validate_charity_id(mention):
   # TODO: Try to shorten once Python 3.6 w/ PEP 0505 comes out
   try:
     charity_id = int(message[2])
-  except ValueError:
+  except (TypeError, ValueError):
     charity_id = DEFAULT_CHARITY_ID
 
   jg = justgiving_request_wrapper('v1/charity/' + str(charity_id),'GET')
@@ -66,16 +66,23 @@ def validate_charity_id(mention):
   return charity_id
 
 def get_attribution_info(mention):
-  # FIX: IMPORTANT...If a post is deleted inbetween calling Charity-Bot and trying to grab all the needed info then we will throw an AttributeError
   donator         = mention.author.name
   donator_is_root = mention.is_root
-  donator_post_id = mention.id
+  try:
+    donator_post_id = mention.id
+  except AttributeError:
+    donator_post_id = None
+
   parent_post_id  = mention.parent_id
+  # FIX: IMPORTANT...If a post is deleted inbetween calling Charity-Bot and trying to grab all the needed info then we will throw an AttributeError
+  try:
+    if donator_is_root:
   # If root comment then assume donation is in the name of OP, otherwise assume donation is for the parent_commenter which the donator replied to.
-  if donator_is_root:
-    parent_commenter = mention.submission.author.name
-  else:    
-    parent_commenter = r.get_info(thing_id=parent_post_id).author.name
+      parent_commenter = mention.submission.author.name
+    else:    
+      parent_commenter = r.get_info(thing_id=parent_post_id).author.name
+  except AttributeError:
+    parent_commenter = None
 
   print(donator,"(id:",donator_post_id,"is_root",donator_is_root,") /", parent_commenter,"(",parent_post_id,")")
   
@@ -102,9 +109,12 @@ def send_donation_url(donation_url, donator, parent_commenter):
   if donation_url == None:
     return False
 
-  subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
-  message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
-  sent_message = r.send_message(recipient=donator, subject=subject, message=message)
+  if donator and parent_commenter:
+    subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
+    message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
+    sent_message = r.send_message(recipient=donator, subject=subject, message=message)
+  else:
+    return False
 
   if not sent_message.get("errors"):
     return True
@@ -127,7 +137,7 @@ def get_donation_details(donation_id):
   return [False, 0, "XXX"]
 
 def post_confirmation():
-  # Post a confirmation comment back to the original message id.
+  # Post a confirmation comment back to the original parent_commenter...If parent_commenter is None (ie. missing), then reply to the donator comment, if that is missing (None), then do nothing. Remember to wrap both attempts in try/except for AttributeError here...
   pass
 
 def check_mentions():
@@ -141,6 +151,11 @@ def check_mentions():
 
       user_id                   = str(uuid.uuid1())
       charity_id                = validate_charity_id(mention)
+
+      # Skip processing the mention if charity_id is none
+      if not charity_id:
+        continue
+
       donator, donator_post_id,\
       parent_commenter, \
       parent_post_id, \
@@ -148,6 +163,9 @@ def check_mentions():
 
       donation_url              = get_donation_url(charity_id, user_id)
       donation_url_sent         = send_donation_url(donation_url, donator, parent_commenter)
+
+      if not donation_url_sent:
+        r.send_message(recipient=donator, subject="Error with donation", message="Something went wrong with processing your donation. This can happen if either you or the parent commenter/OP you were donating for deleted their message/submission. If you're receiving this error and nothing was deleted please reply to me letting me know so I can look into it. \n\n You can still always donate here, but I may not be able to let the parent commenter/OP know:\n\n" + donation_url)
 
       new_donation = Donation(user_id=user_id, charity_id=charity_id, 
         donator=donator, donator_post_id=donator_post_id, donator_is_root=donator_is_root, 
@@ -181,5 +199,5 @@ def check_pending_donations():
       donation.donation_currency = donation_currency
       session.commit()
 
-# check_mentions()
+check_mentions()
 check_pending_donations()

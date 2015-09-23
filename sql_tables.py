@@ -14,7 +14,7 @@ class Donation(Base):
   # Donator and parent_commenter usernames and post ids
   donator           = Column(String(30), nullable=False)
   donator_post_id   = Column(String(30), nullable=False) # The reddit comment ID that triggered Charity-Bot
-  parent_commenter  = Column(String(30), nullable=False)
+  parent_commenter  = Column(String(30), nullable=True)
   parent_post_id    = Column(String(30), nullable=False)
 
   
