@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 from utils import *
 from settings import *
-from tables import *
+from sql_tables import *
 
 r = praw.Reddit(REDDIT_USER_AGENT)
 o = OAuth2Util.OAuth2Util(r)
