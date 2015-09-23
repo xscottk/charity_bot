@@ -2,13 +2,13 @@
 
 # Example: r = requests.get('https://api-sandbox.justgiving.com/JUSTGIVING_APP_ID/v1/fundraising/pages', auth=HTTPBasicAuth('JUSTGIVING_USER', 'JUSTGIVING_PASS'), headers={'accept':'application/json'})
 
-import json
+# import json
 import OAuth2Util
 import praw
 import urllib
 import uuid
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 
 from utils import *
@@ -66,6 +66,7 @@ def validate_charity_id(mention):
   return charity_id
 
 def get_attribution_info(mention):
+  # FIX: IMPORTANT...If a post is deleted inbetween calling Charity-Bot and trying to grab all the needed info then we will throw an AttributeError
   donator         = mention.author.name
   donator_is_root = mention.is_root
   donator_post_id = mention.id
@@ -77,6 +78,8 @@ def get_attribution_info(mention):
     parent_commenter = r.get_info(thing_id=parent_post_id).author.name
 
   print(donator,"(id:",donator_post_id,"is_root",donator_is_root,") /", parent_commenter,"(",parent_post_id,")")
+  
+  # QUESTION: Is this the right way to do this? Or should I be using objects? Or something else?
   return [donator, donator_post_id, parent_commenter, parent_post_id, donator_is_root]
 
 def get_donation_url(charity_id, user_id):
@@ -108,21 +111,26 @@ def send_donation_url(donation_url, donator, parent_commenter):
   else:
     return False
 
-def confirm_accepted_donation(donation_id):
-  # Confirm that the donation was accepted by JustGiving.
+def get_donation_details(donation_id):
+  # Get details for a donation_id from JustGiving
   if donation_id:
-    response         = justgiving_request_wrapper('v1/donation/' + donation_id, 'GET')
-    decoded_response = json.loads(response)
-    status           = decoded_response.get('status')
+    try:
+      response          = justgiving_request_wrapper('v1/donation/' + str(donation_id), 'GET')
+      json_response     = response.json()
+      donation_accepted = json_response.get('status') == 'Accepted'
+      donation_amount   = str(json_response.get('donorLocalAmount'))
+      donation_currency = str(json_response.get('donorLocalCurrencyCode'))
+      return [donation_accepted, donation_amount, donation_currency]
+    except (TypeError, ValueError):
+      return [False, 0, "XXX"]
 
-    if status == "Accepted":
-      return True
+  return [False, 0, "XXX"]
 
 def post_confirmation():
   # Post a confirmation comment back to the original message id.
   pass
 
-def init():
+def check_mentions():
 
   # REMINDER: In production uncomment below line and delete other new_mentions
   # new_mentions = filter(lambda x: x.new, all_mentions)
@@ -160,4 +168,18 @@ def init():
 
   mentions_file.close()
 
-init()
+def check_pending_donations():
+  pending_donations = session.query(Donation).filter(
+    and_(Donation.donation_url_sent == True, Donation.donation_id != None))
+
+  for donation in pending_donations:
+    donation_accepted, donation_amount, donation_currency = get_donation_details(donation.donation_id)
+
+    if donation_accepted and donation_amount and donation_currency:
+      donation.donation_complete = True
+      donation.donation_amount   = donation_amount
+      donation.donation_currency = donation_currency
+      session.commit()
+
+# check_mentions()
+check_pending_donations()

@@ -4,3 +4,4 @@ __pycache__
 oauth.ini
 processed_mentions
 *.db
+old

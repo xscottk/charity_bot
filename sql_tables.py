@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, Numeric
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -21,6 +21,9 @@ class Donation(Base):
   donator_is_root   = Column(Boolean, nullable=False)
   donation_url_sent = Column(Boolean, nullable=False) # Donation url sent via pm
   donation_complete = Column(Boolean, nullable=False)
+
+  donation_amount   = Column(String(30), nullable=True)
+  donation_currency = Column(String(5), nullable=True)
 
 
 
