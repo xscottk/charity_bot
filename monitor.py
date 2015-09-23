@@ -8,16 +8,28 @@ import praw
 import urllib
 import uuid
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from utils import *
 from settings import *
+from tables import *
 
 r = praw.Reddit(REDDIT_USER_AGENT)
 o = OAuth2Util.OAuth2Util(r)
 
+# Tracks comment triggers we've already processed.
+# TODO: Replace with SQLite
 mentions_file = open('processed_mentions', 'a+')
 
 mentions_file.seek(0)
 processed_mentions = mentions_file.read().splitlines()
+
+engine = create_engine(SQLALCHEMY_ADDRESS)
+Base.metadata.create_all(engine)
+
+DBSession = sessionmaker(bind=engine)
+session   = DBSession() 
 
 o.refresh()
 all_mentions = r.get_mentions()
@@ -54,17 +66,18 @@ def validate_charity_id(mention):
   return charity_id
 
 def get_attribution_info(mention):
-  donator   = mention.author.name
-  is_root   = mention.is_root
-  parent_id = mention.parent_id
+  donator         = mention.author.name
+  donator_is_root = mention.is_root
+  donator_post_id = mention.id
+  parent_post_id  = mention.parent_id
   # If root comment then assume donation is in the name of OP, otherwise assume donation is for the parent_commenter which the donator replied to.
-  if is_root:
+  if donator_is_root:
     parent_commenter = mention.submission.author.name
   else:    
-    parent_commenter = r.get_info(thing_id=parent_id).author.name
+    parent_commenter = r.get_info(thing_id=parent_post_id).author.name
 
-  print(donator,"(is_root:",is_root,") /", parent_commenter,"(",parent_id,")")
-  return [donator, parent_commenter, parent_id, is_root]
+  print(donator,"(id:",donator_post_id,"is_root",donator_is_root,") /", parent_commenter,"(",parent_post_id,")")
+  return [donator, donator_post_id, parent_commenter, parent_post_id, donator_is_root]
 
 def get_donation_url(charity_id, user_id):
   # Get the donation link from justgiving. And add the GET variables we need to track the donation.
@@ -118,20 +131,31 @@ def init():
   for mention in new_mentions:
     if mention.id not in processed_mentions:
 
-      charity_id                = validate_charity_id(mention)
-      donator, parent_commenter, \
-      parent_id, is_root        = get_attribution_info(mention)
       user_id                   = str(uuid.uuid1())
+      charity_id                = validate_charity_id(mention)
+      donator, donator_post_id,\
+      parent_commenter, \
+      parent_post_id, \
+      donator_is_root           = get_attribution_info(mention)
+
       donation_url              = get_donation_url(charity_id, user_id)
       donation_url_sent         = send_donation_url(donation_url, donator, parent_commenter)
+
+      new_donation = Donation(user_id=user_id, charity_id=charity_id, 
+        donator=donator, donator_post_id=donator_post_id, donator_is_root=donator_is_root, 
+        parent_commenter=parent_commenter, parent_post_id=parent_post_id, 
+        donation_url_sent=donation_url_sent, donation_complete=False)
+      session.add(new_donation)
+      session.commit()
+
       print(mention.body,"=", charity_id, "Donation message sent:", donation_url_sent)
+
 
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
       # TODO: Switch to sqlite at some point
       mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
       
-      # confirm_donation() # Will need a way to repeatedly check this...may be better calling and then queuing up a checking system after sending the donation message
       # post_confirmation()
 
   mentions_file.close()

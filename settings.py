@@ -20,3 +20,5 @@ DEFAULT_CHARITY_ID = 2357
 
 HTTP_HOSTNAME      = 'localhost'
 HTTP_PORT          = 8080
+
+SQLALCHEMY_ADDRESS        = 'sqlite:///charity_database.db'
