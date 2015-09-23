@@ -1,6 +1,7 @@
-import os
 import urllib
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from uuid import UUID
 
 from settings import *
 from utils import *
@@ -17,9 +18,11 @@ class SimpleHandler(BaseHTTPRequestHandler):
     try:
       query_string = urllib.parse.parse_qs(self.path[2:]) # The [2:] clips off '/?' from the self.path string
       donation_id  = query_string.get('donation_id')
-      donation_id  = str(donation_id[0])
+      donation_id  = int(donation_id[0])
       user_id      = query_string.get('user_id')
-      user_id      = str(user_id[0])
+      user_id      = UUID(user_id[0])
+      # print(donation_id,"/",user_id)
+
     except TypeError:  
       donation_id = None
       user_id     = None
@@ -38,7 +41,9 @@ def start_server():
 
 def save_donation_id(donation_id, user_id):
   print(donation_id,"/",user_id)
-  # if donation_id and user_id:
+
+  if donation_id and user_id:
+    pass
 
 
 start_server()

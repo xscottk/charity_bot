@@ -54,16 +54,17 @@ def validate_charity_id(mention):
   return charity_id
 
 def get_attribution_info(mention):
-  donator = mention.author.name
-
-  # If root comment then assume donation is in the name of the submitter, otherwise assume donation is for the parent_commenter which the donator replied to.
-  if mention.is_root:
+  donator   = mention.author.name
+  is_root   = mention.is_root
+  parent_id = mention.parent_id
+  # If root comment then assume donation is in the name of OP, otherwise assume donation is for the parent_commenter which the donator replied to.
+  if is_root:
     parent_commenter = mention.submission.author.name
   else:    
-    parent_commenter = r.get_info(thing_id=mention.parent_id).author.name
+    parent_commenter = r.get_info(thing_id=parent_id).author.name
 
-  print(donator,"/", parent_commenter)
-  return [donator, parent_commenter]
+  print(donator,"(is_root:",is_root,") /", parent_commenter,"(",parent_id,")")
+  return [donator, parent_commenter, parent_id, is_root]
 
 def get_donation_url(charity_id, user_id):
   # Get the donation link from justgiving. And add the GET variables we need to track the donation.
@@ -73,14 +74,14 @@ def get_donation_url(charity_id, user_id):
     return None
 
   # Pretty sure this is a sin...
-  exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + HTTP_PORT + '/?donation_id=JUSTGIVING-DONATION-ID&user_id=' + user_id
+  exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + str(HTTP_PORT) + '/?donation_id=JUSTGIVING-DONATION-ID&user_id=' + str(user_id)
   exit_url_info = urllib.parse.quote(exit_url_info)
 
   donation_url = JUSTGIVING_BASE_WEBSITE_URL + '/4w350m3/donation/direct/charity/' + str(charity_id) + '/?exitUrl=' + exit_url_info
 
   return donation_url
 
-def send_donation_message(donation_url, donator, parent_commenter):
+def send_donation_url(donation_url, donator, parent_commenter):
   # Send the donation link to the donator. Return True if donation message sent, otherwise return False.
   if donation_url == None:
     return False
@@ -118,11 +119,12 @@ def init():
     if mention.id not in processed_mentions:
 
       charity_id                = validate_charity_id(mention)
-      donator, parent_commenter = get_attribution_info(mention)
+      donator, parent_commenter, \
+      parent_id, is_root        = get_attribution_info(mention)
       user_id                   = str(uuid.uuid1())
       donation_url              = get_donation_url(charity_id, user_id)
-      donation_message_sent     = send_donation_message(donation_url, donator, parent_commenter)
-      print(mention.body,"=", charity_id, "Donation message sent:", donation_message_sent)
+      donation_url_sent         = send_donation_url(donation_url, donator, parent_commenter)
+      print(mention.body,"=", charity_id, "Donation message sent:", donation_url_sent)
 
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
