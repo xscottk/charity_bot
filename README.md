@@ -2,6 +2,18 @@
 A bot for reddit which handles donations to charity via comments and the JustGiving.com API
 
 # Usage
+The bot is called via reddit comments with one of the two call formats below:
+
+`/u/Charity-Bot donate` - Will send the user a donation link to the default charity (currently Cancer Research UK)
+`/u/Charity-Bot donate ID` - ID is an integer for the charity the donator wants to donate to. 
+
+To get a charity ID, go to its charity page on JustGiving ([https://www.justgiving.com/rmcc/](example)), click the "Donate" button, and find the number after `/charity/`.
+
+I'm working on compiling an easier to use list over the next few days so this annoying process is only temporary.
+
+If an ID is invalid, either doesn't exist, or is not an integer, the default charity (Cancer Research UK) will be used.
+
+# Running
 The bot is divided into 2 parts:
 
 `monitor.py` - Which you should run every few minutes via a cron job. This script monitors reddit, post comments, etc.
