@@ -8,11 +8,11 @@ The bot is called via reddit comments with one of the two call formats below:
 
 `/u/Charity-Bot donate ID` - ID is an integer for the charity the donator wants to donate to. 
 
-To get a charity ID, go to its charity page on JustGiving ([https://www.justgiving.com/rmcc/](example)), click the "Donate" button, and find the number after `/charity/` in your URL bar.
+To get a charity ID, go to its charity page on JustGiving ([example](https://www.justgiving.com/rmcc/)), click the "Donate" button, and find the number after `/charity/` in your URL bar.
 
 I'm working on compiling an easier to use list over the next few days so this annoying process is only temporary.
 
-If an ID is invalid, either doesn't exist, or is not an integer, the default charity (Cancer Research UK) will be used.
+If an ID is invalid, either doesn't exist, or is not an integer, the default charity will be used.
 
 The bot assumes that the parent commenter or OP of the donator's comment is who the donation is for.
 
@@ -63,6 +63,8 @@ port = 65010
 redirect_path = authorize_callback
 link_path = oauth
 ```
+
+Lastly, check out the `settings.py` comments and edit the file as necessary
 
 # Workflow
 
