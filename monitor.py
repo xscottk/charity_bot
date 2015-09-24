@@ -8,6 +8,9 @@ import praw
 import urllib
 import uuid
 
+from decimal import Decimal
+TWO_PLACES = Decimal(10) ** -2
+
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 
@@ -36,7 +39,7 @@ all_mentions = r.get_mentions()
 
 def validate_charity_id(mention):
   # Parse and validate donation message.
-  # RETURN: Validated charity number OR None if invalid charity number.
+  # RETURN: Validated charity number, name, and website OR None if invalid charity number.
 
   # Call format: \u\Charity-Bot donate charityID
   # Default Charity if no charity specified: \u\Charity-Bot donate 2357 (Charity ID for Cancer Research UK)
@@ -50,20 +53,27 @@ def validate_charity_id(mention):
   donate  = message[1] == "donate"
 
   if not donate:
-    return None
+    return [None, None, None]
 
-  # TODO: Try to shorten once Python 3.6 w/ PEP 0505 comes out
   try:
     charity_id = int(message[2])
   except (TypeError, ValueError):
     charity_id = DEFAULT_CHARITY_ID
 
-  jg = justgiving_request_wrapper('v1/charity/' + str(charity_id),'GET')
+  # QUESTION: Should I just be storing json responses for charity/donation details and then accessing them directly in functions?
+  response            = justgiving_request_wrapper('v1/charity/' + str(charity_id),'GET')
 
-  if jg.status_code != 200:
-    return DEFAULT_CHARITY_ID
+  if response.status_code == 200:
+    json_response       = response.json()
+    charity_name        = json_response.get('name')
+    charity_profile_url = json_response.get('profilePageUrl')
 
-  return charity_id
+  else:
+    charity_id = None
+    charity_name = None
+    charity_profile_url = None
+
+  return [charity_id, charity_name, charity_profile_url]
 
 def get_attribution_info(mention):
   donator         = mention.author.name
@@ -74,7 +84,7 @@ def get_attribution_info(mention):
     donator_post_id = None
 
   parent_post_id  = mention.parent_id
-  # FIX: IMPORTANT...If a post is deleted inbetween calling Charity-Bot and trying to grab all the needed info then we will throw an AttributeError
+
   try:
     if donator_is_root:
   # If root comment then assume donation is in the name of OP, otherwise assume donation is for the parent_commenter which the donator replied to.
@@ -110,14 +120,17 @@ def send_donation_url(donation_url, donator, parent_commenter):
     return False
 
   message = "Here's your donation link. You're totally awesome! \n\n" + donation_url
+  
+  # If the parent_commenter deletes their post we need to let the donator know.
+  if parent_commenter:
+    subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
+  else:
+    subject = "Your donation link!"
+    message += "\n\n Unfortunately the person who inspired your donation has deleted their post. I will be unable to notify them of your donation."
+
   if donator:
-    if parent_commenter:
-      subject = "Your donation link for /u/"+parent_commenter+"'s comment/post"
-    else:
-      subject = "Your donation link!"
-      message += "\n\n Unfortunately the person who inspired your donation has deleted their post. I will be unable to notify them of your donation."
-    
-    sent_message = r.send_message(recipient=donator, subject=subject, message=message)
+    # sent_message = r.send_message(recipient=donator, subject=subject, message=message)
+    sent_message = handle_ratelimit(r.send_message, recipient=donator, subject=subject, message=message)  
   else:
     return False
 
@@ -135,15 +148,34 @@ def get_donation_details(donation_id):
       donation_accepted = json_response.get('status') == 'Accepted'
       donation_amount   = str(json_response.get('donorLocalAmount'))
       donation_currency = str(json_response.get('donorLocalCurrencyCode'))
-      return [donation_accepted, donation_amount, donation_currency]
+      donation_message  = str(json_response.get('message'))
+      return [donation_accepted, donation_amount, donation_currency, donation_message]
     except (TypeError, ValueError):
-      return [False, 0, "XXX"]
+      return [False, None, None, None]
 
-  return [False, 0, "XXX"]
+  return [False, None, None, None]
 
-def post_confirmation():
+def post_confirmation(donator_is_root, donator, parent_commenter, parent_post_id, donation_amount, donation_currency, charity_name, charity_profile_url, donator_message=None):
   # Post a confirmation comment back to the original parent_commenter...If parent_commenter is None (ie. missing), then reply to the donator comment, if that is missing (None), then do nothing. Remember to wrap both attempts in try/except for AttributeError here...
-  pass
+  
+
+  donation_amount = str(Decimal(donation_amount).quantize(TWO_PLACES))
+
+  intro = "Hey there " + parent_commenter + "!\n\n"
+  body  = donator + " has donated " + donation_amount + " " + donation_currency + " to " + "[" + charity_name + "](" + charity_profile_url + ") because of your comment / submission. \n\n"
+  if donator_message:
+    footer = "They also included a message: \n\n" + donator_message
+  else:
+    footer = ""
+
+  reply = intro + body + footer
+
+  submission = r.get_info(thing_id=parent_post_id)
+
+  if donator_is_root:
+    handle_ratelimit(submission.add_comment, reply)  
+  else:
+    handle_ratelimit(submission.reply, reply)
 
 def check_mentions():
 
@@ -155,9 +187,10 @@ def check_mentions():
     if mention.id not in processed_mentions:
 
       user_id                   = str(uuid.uuid1())
-      charity_id                = validate_charity_id(mention)
+      charity_id, charity_name,\
+      charity_profile_url       = validate_charity_id(mention)
 
-      # Skip processing the mention if charity_id is none
+      # Skip processing the mention if charity_id is None
       if not charity_id:
         continue
 
@@ -169,13 +202,17 @@ def check_mentions():
       donation_url              = get_donation_url(charity_id, user_id)
       donation_url_sent         = send_donation_url(donation_url, donator, parent_commenter)
 
-      # if not donation_url_sent:
-      #   r.send_message(recipient=donator, subject="Error with donation", message="Something went wrong with processing your donation. This can happen if either you or the parent commenter/OP you were donating for deleted their message/submission. If you're receiving this error and nothing was deleted please reply to me letting me know so I can look into it. \n\n You can still always donate here, but I may not be able to let the parent commenter/OP know:\n\n" + donation_url)
-
-      new_donation = Donation(user_id=user_id, charity_id=charity_id, 
-        donator=donator, donator_post_id=donator_post_id, donator_is_root=donator_is_root, 
-        parent_commenter=parent_commenter, parent_post_id=parent_post_id, 
-        donation_url_sent=donation_url_sent, donation_complete=False)
+      new_donation = Donation(user_id=user_id, 
+        charity_id=charity_id, 
+        charity_name=charity_name, 
+        charity_profile_url=charity_profile_url,
+        donator=donator, 
+        donator_post_id=donator_post_id, 
+        donator_is_root=donator_is_root, 
+        parent_commenter=parent_commenter, 
+        parent_post_id=parent_post_id, 
+        donation_url_sent=donation_url_sent, 
+        donation_complete=False)
       session.add(new_donation)
       session.commit()
 
@@ -183,8 +220,8 @@ def check_mentions():
 
 
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
+      # TODO: Switch to sqlite for this at some point
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
-      # TODO: Switch to sqlite at some point
       mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
       
       # post_confirmation()
@@ -193,16 +230,29 @@ def check_mentions():
 
 def check_pending_donations():
   pending_donations = session.query(Donation).filter(
-    and_(Donation.donation_url_sent == True, Donation.donation_id != None))
+    and_(Donation.donation_url_sent == True, Donation.donation_id != None, Donation.donation_complete == False))
 
   for donation in pending_donations:
-    donation_accepted, donation_amount, donation_currency = get_donation_details(donation.donation_id)
+    donation_accepted, donation_amount, donation_currency, donation_message = get_donation_details(donation.donation_id)
 
     if donation_accepted and donation_amount and donation_currency:
+      
       donation.donation_complete = True
       donation.donation_amount   = donation_amount
       donation.donation_currency = donation_currency
+
       session.commit()
+
+      post_confirmation(
+        donator_is_root=donation.donator_is_root,
+        donator=donation.donator, 
+        parent_commenter=donation.parent_commenter, 
+        parent_post_id=donation.parent_post_id, 
+        donation_amount=donation_amount, 
+        donation_currency=donation_currency, 
+        charity_name=donation.charity_name,
+        charity_profile_url=donation.charity_profile_url, 
+        donator_message=donation_message)
 
 check_mentions()
 check_pending_donations()

@@ -1,0 +1,2 @@
+If multiple donations, consolidate into one comment
+Handle praw.errors.RateLimitExceeded

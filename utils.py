@@ -1,4 +1,7 @@
+import praw
 import requests
+import time
+
 from requests.auth import HTTPBasicAuth
 
 from settings import *
@@ -27,3 +30,13 @@ def justgiving_request_wrapper(resource, method, additional_headers=None, **kwar
     return None
 
   return jg_request
+
+def handle_ratelimit(func, *args, **kwargs):
+  while True:
+    try:
+      func(*args, **kwargs)
+      break
+    except praw.errors.RateLimitExceeded as error:
+      sleep_time = error.sleep_time + 70 # Extra safety buffer
+      print('Rate limit exceeded, sleeping for', sleep_time, 'seconds')
+      time.sleep(sleep_time)
