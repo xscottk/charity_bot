@@ -14,6 +14,8 @@ I'm working on compiling an easier to use list over the next few days so this an
 
 If an ID is invalid, either doesn't exist, or is not an integer, the default charity (Cancer Research UK) will be used.
 
+The bot assumes that the parent commenter or OP of the donator's comment is who the donation is for.
+
 # Running
 The bot is divided into 2 parts:
 
@@ -61,3 +63,16 @@ port = 65010
 redirect_path = authorize_callback
 link_path = oauth
 ```
+
+# Workflow
+
+1. The donator calls the bot as specified in the Usage section.
+
+2. `monitor.py` then sends a donation link to the donator.
+
+3. The donator makes their donation, after the donation is made they're sent to an exitURL.
+
+4. `confirmation_server.py` catches this exitURL and records that the donation_id and user_id
+
+5. `monitor.py` checks for any sent donation_urls that have a donation_id.
+  * If they exist, and are accepted donations then it notifies the parent commenter (via comments).
