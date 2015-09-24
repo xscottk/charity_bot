@@ -13,7 +13,9 @@ The bot is divided into 2 parts:
 From the root directory:
 
 `pip -r requirements`
+
 `touch private_settings.py`
+
 `touch oauth.ini`
 
 `private_settings.py` - Contains your JustGiving API/login info. You can obtain the below info by following the instructions at [https://api.justgiving.com/docs](https://api.justgiving.com/docs):
