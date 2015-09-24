@@ -25,9 +25,9 @@ From the root directory:
 ```
 
 `oauth.ini` - Your PRAW OAuth2Util configuration. 
-Use the "scope" specified below at a minimum. You likely only need to edit app_key and app_secret which you can find out more about at [https://github.com/reddit/reddit/wiki/OAuth2](https://github.com/reddit/reddit/wiki/OAuth2)
+Use the `scope` specified below at a minimum. You likely only need to edit app_key and app_secret which you can find out more about at [https://github.com/reddit/reddit/wiki/OAuth2](https://github.com/reddit/reddit/wiki/OAuth2)
 
-After running the `monitor.py` script a [token] section will be generated for you and added to the `oauth.ini` file.
+After running the `monitor.py` script a `[token]` section will be generated for you and added to the `oauth.ini` file.
 
 You can find out more info about OAuth2Util at [https://github.com/SmBe19/praw-OAuth2Util/blob/master/OAuth2Util/README.md](https://github.com/SmBe19/praw-OAuth2Util/blob/master/OAuth2Util/README.md)
 
