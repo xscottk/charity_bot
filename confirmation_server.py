@@ -3,8 +3,6 @@ import urllib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import exists
-from uuid import UUID
 
 from settings import *
 from sql_tables import *

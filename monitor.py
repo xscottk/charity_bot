@@ -22,7 +22,7 @@ r = praw.Reddit(REDDIT_USER_AGENT)
 o = OAuth2Util.OAuth2Util(r)
 
 # Tracks comment triggers we've already processed.
-# TODO: Replace with SQLite
+# TODO: Replace with SQLite table.
 mentions_file = open('processed_mentions', 'a+')
 
 mentions_file.seek(0)
@@ -220,7 +220,6 @@ def check_mentions():
 
 
       # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
-      # TODO: Switch to sqlite for this at some point
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
       mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
       
