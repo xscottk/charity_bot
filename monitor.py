@@ -173,9 +173,11 @@ def post_confirmation(donator_is_root, donator, parent_commenter, parent_post_id
   submission = r.get_info(thing_id=parent_post_id)
 
   if donator_is_root:
-    handle_ratelimit(submission.add_comment, reply)  
+    comment = handle_ratelimit(submission.add_comment, reply)  
   else:
-    handle_ratelimit(submission.reply, reply)
+    comment = handle_ratelimit(submission.reply, reply)
+
+  print("Sending confirmation of donation (", donation_amount, donation_currency,") for", charity_name, "to", parent_commenter)
 
 def check_mentions():
 
@@ -229,7 +231,10 @@ def check_mentions():
 
 def check_pending_donations():
   pending_donations = session.query(Donation).filter(
-    and_(Donation.donation_url_sent == True, Donation.donation_id != None, Donation.donation_complete == False))
+    and_(Donation.donation_url_sent == True, 
+         Donation.donation_id != None, 
+         Donation.donation_complete == False))
+  # import pdb; pdb.set_trace()
 
   for donation in pending_donations:
     donation_accepted, donation_amount, donation_currency, donation_message = get_donation_details(donation.donation_id)
@@ -241,7 +246,6 @@ def check_pending_donations():
       donation.donation_currency = donation_currency
 
       session.commit()
-
       post_confirmation(
         donator_is_root=donation.donator_is_root,
         donator=donation.donator, 

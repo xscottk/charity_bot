@@ -34,7 +34,7 @@ def justgiving_request_wrapper(resource, method, additional_headers=None, **kwar
 def handle_ratelimit(func, *args, **kwargs):
   while True:
     try:
-      func(*args, **kwargs)
+      return func(*args, **kwargs)
       break
     except praw.errors.RateLimitExceeded as error:
       sleep_time = error.sleep_time + 70 # Extra safety buffer
