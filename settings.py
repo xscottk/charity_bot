@@ -8,8 +8,13 @@ REDDIT_TRIGGER      = "/u/Charity-Bot"
 
 REDDIT_REDIRECT_URI = 'http://127.0.0.1:65010/authorize_callback'
 
+# Testing environment variables
 JUSTGIVING_BASE_API_URL = 'https://api-sandbox.justgiving.com'
 JUSTGIVING_BASE_WEBSITE_URL = 'https://v3-sandbox.justgiving.com'
+
+# Production environment variables
+# JUSTGIVING_BASE_API_URL = 'https://api.justgiving.com'
+# JUSTGIVING_BASE_WEBSITE_URL = 'https://justgiving.com'
 
 
 # QUESTION: Is there a better way to assemble a URL?
