@@ -5,6 +5,7 @@ A bot for reddit which handles donations to charity via comments and the JustGiv
 The bot is called via reddit comments with one of the two call formats below:
 
 `/u/Charity-Bot donate` - Will send the user a donation link to the default charity (currently Cancer Research UK)
+
 `/u/Charity-Bot donate ID` - ID is an integer for the charity the donator wants to donate to. 
 
 To get a charity ID, go to its charity page on JustGiving ([https://www.justgiving.com/rmcc/](example)), click the "Donate" button, and find the number after `/charity/`.
