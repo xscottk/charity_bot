@@ -1,5 +1,5 @@
+import daemon
 import urllib
-import sys
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sqlalchemy import create_engine
@@ -69,4 +69,8 @@ def save_donation_id(donation_id, user_id):
       sql_user.donation_id = donation_id
       session.commit()
 
-start_server()
+# TODO: Do some logging of server errors
+# TODO: Turn this script into a proper daemon
+# with daemon.DaemonContext():
+#   print("Starting daemonized")
+#   start_server()

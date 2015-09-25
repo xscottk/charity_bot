@@ -39,6 +39,9 @@ From the root project directory, preferably in a virtualenv:
   JUSTGIVING_APP_ID  = 'xxxxxxxx'
   JUSTGIVING_USER    = 'example@email.com'
   JUSTGIVING_PASS    = 'password'
+  HTTP_HOSTNAME      = 'localhost' # Used for the donation links sent to people, use a FQD if possible, otherwise an IP address is fine.
+  SERVER_IP          = '0.0.0.0' # The ip/hostname for the server to listen on for requests
+  HTTP_PORT          = 8080
 ```
 
 `oauth.ini` - Your PRAW OAuth2Util configuration. 
