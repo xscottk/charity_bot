@@ -33,6 +33,10 @@ From the root project directory, preferably in a virtualenv:
 
 `touch oauth.ini`
 
+`nohup python monitor.py > charity_log 2>&1 &`
+
+`python confirmation_server.py`
+
 `private_settings.py` - Contains your JustGiving API/login info. You can obtain the below info by following the instructions at [https://api.justgiving.com/docs](https://api.justgiving.com/docs):
 
 ``` python

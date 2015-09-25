@@ -54,7 +54,7 @@ def validate_charity_id(mention):
 
   try:
     charity_id = int(message[2])
-  except (TypeError, ValueError):
+  except (TypeError, ValueError, IndexError):
     charity_id = DEFAULT_CHARITY_ID
 
   # QUESTION: Should I just be storing json responses for charity/donation details and then accessing them directly in functions?
@@ -250,9 +250,13 @@ def check_pending_donations():
         charity_profile_url=donation.charity_profile_url, 
         donator_message=donation_message)
 
-print("Starting daemonized")
-with daemon.DaemonContext():
+def init():
   while True:
     check_mentions()
     check_pending_donations()
     time.sleep(CHECKING_INTERVAL)
+
+print("Starting daemonized")
+
+with daemon.DaemonContext():
+  init()
