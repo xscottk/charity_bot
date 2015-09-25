@@ -27,7 +27,7 @@ The bot is divided into 2 parts:
 
 From the root project directory, preferably in a virtualenv:
 
-`pip -r requirements`
+`pip -r requirements.txt`
 
 `touch private_settings.py`
 
