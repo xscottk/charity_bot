@@ -1,6 +1,7 @@
 import daemon
 import OAuth2Util
 import praw
+import time
 import urllib
 import uuid
 
@@ -253,3 +254,4 @@ with daemon.DaemonContext():
   print("Starting daemonized")
   check_mentions()
   check_pending_donations()
+  time.sleep(CHECKING_INTERVAL)

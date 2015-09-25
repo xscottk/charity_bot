@@ -23,3 +23,5 @@ JUSTGIVING_API_URL = JUSTGIVING_BASE_API_URL + '/' + JUSTGIVING_APP_ID + '/'
 DEFAULT_CHARITY_ID = 2357 # This is the ID for Cancer Research UK
 
 SQLALCHEMY_ADDRESS = 'sqlite:///charity_database.db'
+
+CHECKING_INTERVAL = 60 # Time to wait inbetween checking for new mentions/complete donations
