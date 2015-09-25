@@ -51,7 +51,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
 def start_server():
   try:
-    server = HTTPServer((HTTP_HOSTNAME, HTTP_PORT), SimpleHandler)
+    server = HTTPServer((SERVER_IP, HTTP_PORT), SimpleHandler)
     print('Started http server')
     server.serve_forever()
   except KeyboardInterrupt:
