@@ -14,7 +14,7 @@ I'm working on compiling an easier to use list over the next few days so this an
 
 If an ID is invalid, either doesn't exist, or is not an integer, the default charity will be used.
 
-The bot assumes that the parent commenter or OP of the donator's comment is who the donation is for.
+The bot assumes that the parent commenter or OP of the donator's comment is who inspired the donation. This person will be notified once the donation is complete.
 
 # Running
 The bot is divided into 2 parts:
