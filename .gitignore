@@ -7,3 +7,4 @@ processed_mentions
 *.db*
 old
 charity_log
+*.log
