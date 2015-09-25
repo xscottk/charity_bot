@@ -25,7 +25,7 @@ The bot is divided into 2 parts:
 
 # Setup
 
-From the root directory:
+From the root project directory, preferably in a virtualenv:
 
 `pip -r requirements`
 
