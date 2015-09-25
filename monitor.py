@@ -1,3 +1,4 @@
+import daemon
 import OAuth2Util
 import praw
 import urllib
@@ -248,5 +249,7 @@ def check_pending_donations():
         charity_profile_url=donation.charity_profile_url, 
         donator_message=donation_message)
 
-check_mentions()
-check_pending_donations()
+with daemon.DaemonContext():
+  print("Starting daemonized")
+  check_mentions()
+  check_pending_donations()
