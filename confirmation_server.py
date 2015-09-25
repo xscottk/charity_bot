@@ -1,4 +1,5 @@
 import urllib
+import sys
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sqlalchemy import create_engine
@@ -29,8 +30,16 @@ class SimpleHandler(BaseHTTPRequestHandler):
       query_string = urllib.parse.parse_qs(self.path[2:]) # The [2:] is needed to clip off '/?' from the self.path string
       donation_id  = query_string.get('donation_id')
       donation_id  = int(donation_id[0])
+
+      if not (0 < donation_id < (2**31)):
+        donation_id = None
+
       user_id      = query_string.get('user_id')
       user_id      = str(user_id[0])
+
+      if len(user_id) > 50:
+        user_id = None
+
       # print(donation_id,"/",user_id)
 
     except (TypeError, OverflowError):  
