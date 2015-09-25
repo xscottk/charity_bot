@@ -33,7 +33,7 @@ From the root project directory, preferably in a virtualenv:
 
 `touch oauth.ini`
 
-`nohup python monitor.py > charity_log 2>&1 &`
+`python monitor.py`
 
 `python confirmation_server.py`
 
