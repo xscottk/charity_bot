@@ -26,4 +26,4 @@ DEFAULT_CHARITY_ID = 2357 # This is the ID for Cancer Research UK
 HTTP_HOSTNAME      = 'localhost'
 HTTP_PORT          = 8080
 
-SQLALCHEMY_ADDRESS        = 'sqlite:///charity_database.db'
+SQLALCHEMY_ADDRESS = 'sqlite:///charity_database.db'
