@@ -1,8 +1,3 @@
-# REMINDER: In production make sure we use a different email and maybe name for accepting donations.
-
-# Example: r = requests.get('https://api-sandbox.justgiving.com/JUSTGIVING_APP_ID/v1/fundraising/pages', auth=HTTPBasicAuth('JUSTGIVING_USER', 'JUSTGIVING_PASS'), headers={'accept':'application/json'})
-
-# import json
 import OAuth2Util
 import praw
 import urllib
@@ -42,11 +37,11 @@ def validate_charity_id(mention):
   # RETURN: Validated charity number, name, and website OR None if invalid charity number.
 
   # Call format: \u\Charity-Bot donate charityID
-  # Default Charity if no charity specified: \u\Charity-Bot donate 2357 (Charity ID for Cancer Research UK)
+  # Default Charity if no charity specified or invalid charityID: \u\Charity-Bot donate
 
   # Rules:
   # First argument must be the word 'donate'
-  # Charity must be a valid charity number
+  # Charity must be a valid number, and valid JustGiving charity number
 
   message = mention.body.split()
 
@@ -101,7 +96,6 @@ def get_attribution_info(mention):
 
 def get_donation_url(charity_id, user_id):
   # Get the donation link from justgiving. And add the GET variables we need to track the donation.
-  # Example URL: https://v3-sandbox.justgiving.com/4w350m3/donation/direct/charity/2357/?exitUrl=http%3A%2F%2Fwww.dogstrust.org.uk%2F#MessageAndAmount
 
   if charity_id == None:
     return None
@@ -181,9 +175,9 @@ def post_confirmation(donator_is_root, donator, parent_commenter, parent_post_id
 
 def check_mentions():
 
-  # REMINDER: In production uncomment below line and delete other new_mentions
-  # new_mentions = filter(lambda x: x.new, all_mentions)
-  new_mentions = all_mentions
+  # REMINDER: In production uncomment below line
+  new_mentions = filter(lambda x: x.new, all_mentions)
+  # new_mentions = all_mentions
 
   for mention in new_mentions:
     if mention.id not in processed_mentions:
@@ -221,11 +215,9 @@ def check_mentions():
       print(mention.body,"=", charity_id, "Donation message sent:", donation_url_sent)
 
 
-      # TODO: REMEMBER TO UNCOMMENT THIS IN PRODUCTION
+      # REMINDER: UNCOMMENT THIS IN PRODUCTION
       mention.mark_as_read() # Remotely prevents responding to the same message twice.
       mentions_file.write(mention.id + '\n') # Locally prevents responding to the same message twice.
-      
-      # post_confirmation()
 
   mentions_file.close()
 
@@ -234,7 +226,6 @@ def check_pending_donations():
     and_(Donation.donation_url_sent == True, 
          Donation.donation_id != None, 
          Donation.donation_complete == False))
-  # import pdb; pdb.set_trace()
 
   for donation in pending_donations:
     donation_accepted, donation_amount, donation_currency, donation_message = get_donation_details(donation.donation_id)
