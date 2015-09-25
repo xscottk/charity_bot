@@ -42,7 +42,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
       # print(donation_id,"/",user_id)
 
-    except (TypeError, OverflowError):  
+    except (TypeError, ValueError, OverflowError):  
       donation_id = None
       user_id     = None
 
