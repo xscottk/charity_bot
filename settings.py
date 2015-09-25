@@ -24,7 +24,7 @@ JUSTGIVING_API_URL = JUSTGIVING_BASE_API_URL + '/' + JUSTGIVING_APP_ID + '/'
 DEFAULT_CHARITY_ID = 2357 # This is the ID for Cancer Research UK
 
 HTTP_HOSTNAME      = 'localhost' # Used for the links sent to people, use a FQD if possible
-SERVER_IP          = 'localhost' # The ip/hostname for the server to listen on for requests
+SERVER_IP          = '0.0.0.0' # The ip/hostname for the server to listen on for requests
 HTTP_PORT          = 8080
 
 SQLALCHEMY_ADDRESS = 'sqlite:///charity_database.db'
