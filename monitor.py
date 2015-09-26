@@ -259,4 +259,4 @@ check_pending_donations()
 #print("Starting daemonized")
 
 #with daemon.DaemonContext():
-init()
+#init()
