@@ -47,7 +47,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
       user_id     = None
 
     save_donation_id(donation_id, user_id)
-    return
+    # return
 
 def start_server():
   try:
