@@ -58,27 +58,3 @@ def get_donation_details(donation_id):
       return [False, None, None, None]
 
   return [False, None, None, None]
-
-def post_confirmation(r, donator_is_root, donator, parent_commenter, parent_post_id, donation_amount, donation_currency, charity_name, charity_profile_url, donator_message=None):
-  # Post a confirmation comment back to the original parent_commenter...If parent_commenter is None (ie. missing), then reply to the donator comment, if that is missing (None), then do nothing. Remember to wrap both attempts in try/except for AttributeError here...
-  
-
-  donation_amount = str(Decimal(donation_amount).quantize(TWO_PLACES))
-
-  intro = "Hey there " + parent_commenter + "!\n\n"
-  body  = donator + " has donated " + donation_amount + " " + donation_currency + " to " + "[" + charity_name + "](" + charity_profile_url + ") because of your comment / submission. \n\n"
-  if donator_message:
-    footer = "They also included a message: \n\n" + donator_message
-  else:
-    footer = ""
-
-  reply = intro + body + footer
-
-  submission = r.get_info(thing_id=parent_post_id)
-
-  if donator_is_root:
-    comment = handle_ratelimit(submission.add_comment, reply)  
-  else:
-    comment = handle_ratelimit(submission.reply, reply)
-
-  print("Sending confirmation of donation (", donation_amount, donation_currency,") for", charity_name, "to", parent_commenter)
