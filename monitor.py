@@ -61,7 +61,7 @@ def check_mentions():
     for mention in new_mentions:
       if mention.id not in processed_mentions:
 
-        td = TrackedDonation(mention, r, session)
+        td = TrackedDonation(mention, r)
         td.send_donation_url()
 
         td.save_to_database()

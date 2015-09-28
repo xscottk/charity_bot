@@ -1,8 +1,19 @@
 import uuid
 import urllib
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from utils import *
 from sql_tables import *
+
+engine = create_engine(SQLALCHEMY_ADDRESS)
+Base.metadata.bind = engine
+
+DBSession = sessionmaker()
+DBSession.bind = engine
+
+session = DBSession()
 
 class TrackedDonation():
 
@@ -131,12 +142,12 @@ class TrackedDonation():
       parent_post_id=self.parent_post_id, 
       donation_url_sent=self.donation_url_sent, 
       donation_complete=False)
-    self.session.add(new_donation)
-    self.session.commit()
+    session.add(new_donation)
+    session.commit()
   
-  def __init__(self, mention, r, session):
+  def __init__(self, mention, r):
     self.r                   = r
-    self.session             = session
+    # self.session             = session
     self.user_id             = str(uuid.uuid1())
     self.mention             = None
     self.is_valid            = False

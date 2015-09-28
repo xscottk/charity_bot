@@ -74,3 +74,4 @@ def save_donation_id(donation_id, user_id):
 print("Starting daemonized")
 with daemon.DaemonContext():
   start_server()
+# start_server()
