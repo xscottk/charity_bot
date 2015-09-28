@@ -19,7 +19,7 @@ The bot assumes that the parent commenter or OP of the donator's comment is who 
 # Running
 The bot is divided into 2 parts:
 
-`monitor.py` - Which you should run every few minutes via a cron job. This script monitors reddit, post comments, etc.
+`monitor.py` - This script monitors reddit, post comments, etc. You should run it every few minutes via a cron job, and ensure no more than one instance is running at a time (ex. `run-one monitor.py`). 
 
 `confirmation_server.py` - A small http daemon that you should keep running. This script monitors the callback URL that JustGiving uses, and records when someone sends a donation to JustGiving.
 
