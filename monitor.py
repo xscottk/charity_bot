@@ -35,9 +35,11 @@ def post_confirmation(donator_is_root, donator, parent_commenter, parent_post_id
   if donator_message:
     footer = "They also included a message: \n\n" + donator_message
   else:
-    footer = ""
+    footer = "\n\n"
 
-  reply = intro + body + footer
+  about_charity_bot = "\n\nFind out more about charity bot, and how to use it [here](https://github.com/pyskell/charity_bot)"
+
+  reply = intro + body + footer + about_charity_bot
 
   submission = r.get_info(thing_id=parent_post_id)
 
