@@ -19,9 +19,9 @@ The bot assumes that the parent commenter or OP of the donator's comment is who 
 # Running
 The bot is divided into 2 parts:
 
-`monitor.py` - This script monitors reddit, post comments, etc. You should run it every few minutes via a cron job, and ensure no more than one instance is running at a time (ex. `run-one monitor.py`). 
+`monitor.py` - This script monitors reddit, post comments, etc. You should leave it running. At the moment it does not properly daemonize. Please help me. I don't know what I'm doing.
 
-`confirmation_server.py` - A small http daemon that you should keep running. This script monitors the callback URL that JustGiving uses, and records when someone sends a donation to JustGiving.
+`confirmation_server.py` - A small http daemon that you should keep running. This script monitors the callback URL that JustGiving uses, and records when someone sends a donation to JustGiving. This script properly daemonizes.
 
 # Setup
 

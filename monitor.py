@@ -102,17 +102,21 @@ def check_pending_donations():
         charity_profile_url=donation.charity_profile_url, 
         donator_message=donation_message)
 
-# def init():
-#   while True:
-#     o.refresh()
-#     check_mentions()
-#     check_pending_donations()
-#     time.sleep(CHECKING_INTERVAL)
+def init():
+  while True:
+    o.refresh()
+    print("Checking mentions...")
+    check_mentions()
+    print("Checking pending donations...")
+    check_pending_donations()
+    print("Sleeping for %s seconds..." % CHECKING_INTERVAL)
+    time.sleep(CHECKING_INTERVAL)
 
 # print("Starting daemonized")
 
 # with daemon.DaemonContext():
 #  init()
-o.refresh()
-check_mentions()
-check_pending_donations()
+# o.refresh()
+# check_mentions()
+# check_pending_donations()
+init()

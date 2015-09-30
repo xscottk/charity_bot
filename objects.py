@@ -91,6 +91,12 @@ class TrackedDonation():
     if charity_id == None:
       return None
 
+    # CHANGE ALL THESE CONCATENATIONS TO THIS...
+    # In [35]: list = ["http://test.com","morelink","appid","thing"]
+
+    # In [36]: '/'.join(list)
+    # Out[36]: 'http://test.com/morelink/appid/thing'
+
     # Pretty sure this is a sin...
     exit_url_info = 'http://' + HTTP_HOSTNAME + ":" + str(HTTP_PORT) + '/?donation_id=JUSTGIVING-DONATION-ID&user_id=' + str(user_id)
     exit_url_info = urllib.parse.quote(exit_url_info)
