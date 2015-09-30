@@ -71,7 +71,7 @@ def save_donation_id(donation_id, user_id):
 
 # TODO: Do some logging of server errors
 # TODO: Turn this script into a proper daemon
-# print("Starting daemonized")
-# with daemon.DaemonContext():
-  # start_server()
-start_server()
+print("Starting daemonized")
+with daemon.DaemonContext():
+  start_server()
+# start_server()
