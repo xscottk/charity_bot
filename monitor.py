@@ -111,8 +111,8 @@ def init():
   check_mentions()
   print("Checking pending donations...")
   check_pending_donations()
-  print("Sleeping for %s seconds..." % CHECKING_INTERVAL)
-  time.sleep(CHECKING_INTERVAL)
+  # print("Sleeping for %s seconds..." % CHECKING_INTERVAL)
+  # time.sleep(CHECKING_INTERVAL)
 
 # print("Starting daemonized")
 
