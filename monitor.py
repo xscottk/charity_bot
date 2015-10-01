@@ -105,14 +105,14 @@ def check_pending_donations():
         donator_message=donation_message)
 
 def init():
-  while True:
-    o.refresh()
-    print("Checking mentions...")
-    check_mentions()
-    print("Checking pending donations...")
-    check_pending_donations()
-    print("Sleeping for %s seconds..." % CHECKING_INTERVAL)
-    time.sleep(CHECKING_INTERVAL)
+  # while True:
+  o.refresh()
+  print("Checking mentions...")
+  check_mentions()
+  print("Checking pending donations...")
+  check_pending_donations()
+  print("Sleeping for %s seconds..." % CHECKING_INTERVAL)
+  time.sleep(CHECKING_INTERVAL)
 
 # print("Starting daemonized")
 
