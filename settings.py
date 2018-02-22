@@ -2,7 +2,7 @@ CONTENT_TYPE = 'application/json'
 
 # I graciously request that if you run this bot, please leave the "by /u/pyskell" portion in the USER_AGENT string. 
 # Please also add yourself as a contributor to the "by" list if you've made changes.
-REDDIT_USER_AGENT   = "web:charity:v0.0.3 (by /u/pyskell)"
+REDDIT_USER_AGENT   = "web:charity:v0.0.3 (by /u/charitytipbot)"
 
 REDDIT_REDIRECT_URI = 'http://127.0.0.1:65010/authorize_callback'
 
