@@ -4,9 +4,9 @@ A bot for reddit which handles donations to charity via comments and the JustGiv
 # Usage
 The bot is called via reddit comments with one of the two call formats below:
 
-`/u/Charity-Bot donate` - Will send the user a donation link to the default charity (currently Cancer Research UK)
+`/u/CharityTipBot donate` - Will send the user a donation link to the default charity (currently Battered Women's Justice Society)
 
-`/u/Charity-Bot donate ID` - ID is an integer for the charity the donator wants to donate to. 
+`/u/CharityTipBot donate ID` - ID is an integer for the charity the donator wants to donate to. 
 
 To get a charity ID, go to its charity page on JustGiving ([example](https://www.justgiving.com/rmcc/)), click the "Donate" button, and find the number after `/charity/` in your URL bar.
 
@@ -19,7 +19,7 @@ The bot assumes that the parent commenter or OP of the donator's comment is who 
 # Running
 The bot is divided into 2 parts:
 
-`monitor.py` - This script monitors reddit, post comments, etc. You should leave it running. At the moment it does not properly daemonize. Please help me. I don't know what I'm doing.
+`monitor.py` - This script monitors reddit, post comments, etc. 
 
 `confirmation_server.py` - A small http daemon that you should keep running. This script monitors the callback URL that JustGiving uses, and records when someone sends a donation to JustGiving. This script properly daemonizes.
 
